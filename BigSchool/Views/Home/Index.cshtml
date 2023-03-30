@@ -1,0 +1,110 @@
+﻿@model IEnumerable<BigSchool.Models.Course>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create", "Course")
+</p>
+<div class="row">
+    <ul class="course">
+        @foreach (var course in Model)
+        {
+            <li>
+                <div class="date">
+                    <div class="month">
+                        @course.DateTime.ToString("MM")
+                    </div>
+                    <div class="day">
+                        @course.DateTime.ToString("dd")
+                    </div>
+                </div>
+                <div class="details">
+                    <span class="lecture">
+                        @course.Name
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            if (course.LecturerId == ViewBag.User)
+                            {
+
+                            }
+                            else
+                            {
+                                if (course.isShowFollow)
+                                {
+                                    <button data-user-id="@course.LecturerId" class="btn btn-info js-tongle-follow">Following</button>
+                                }
+                                else
+                                {
+                                    <button data-user-id="@course.LecturerId" class="btn btn-default js-tongle-follow">Follow?</button>
+                                }
+                            }
+
+                        }
+                    </span>
+                    <span class="category">
+                        @course.Category.Name
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            if (course.LecturerId == ViewBag.User)
+                            {
+
+                            }
+                            else
+                            {
+                                if (course.isShowGoing == true)
+                                {
+                                    <button data-course-id="@course.Id" class="btn btn-default js-tongle-attendance">Going?</button>
+                                }
+                                else
+                                {
+                                    <button data-course-id="@course.Id" class="btn btn-info js-tongle-attendance">Going</button>
+                                }
+                            }
+
+                        }
+                    </span>
+                </div>
+            </li>
+        }
+    </ul>
+</div>
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $(".js-tongle-attendance").click(function (e) {
+                var button = $(e.target);
+                $.post("/api/attendances", { Id: button.attr("data-course-id") })
+                    .done(function () {
+                        alert("Đăng ký khóa học thành công!");
+                        button.removeClass("btn-default");
+                        button.addClass("btn-info");
+                        button.text("Going");
+                    }).fail(function () {
+                        alert("Khóa học đã đăng ký rồi, chọn khóa khác");
+                    });
+            });
+            $(".js-tongle-follow").click(function (e) {
+                var button = $(e.target);
+                $.post("/api/followings", { FolloweeId: button.attr("data-user-id") })
+                    .done(function () {
+                        alert("Theo dõi thành công!");
+                        button.removeClass("btn-default");
+                        button.addClass("btn-info");
+                        button.text("Following");
+                    }).fail(function () {
+                        alert("Hủy theo dõi thành công!");
+                        button.removeClass("btn-info");
+                        button.addClass("btn-default");
+                        button.text("Follow?");
+                    });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,94 @@
+﻿@model IEnumerable<BigSchool.Models.Course>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<h2>Mine</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create", "Course")
+</p>
+<div class="row">
+    <ul class="course">
+        @foreach (var course in Model)
+        {
+            <li>
+                <div class="date">
+                    <div class="month">
+                        @course.DateTime.ToString("MM")
+                    </div>
+                    <div class="day">
+                        @course.DateTime.ToString("dd")
+                    </div>
+                </div>
+                <div class="details">
+                    <span class="lecture">
+                        @course.Name
+                    </span>
+                    <span class="category">
+                        @course.Category.Name
+                    </span>
+                    @if (course.isCanceled)
+                    {
+                        <span class="badge bg-danger">Canceled</span>
+                    }
+                </div>
+                
+                <div class="action" style="margin-top: 10px;">
+                    @if (course.isCanceled)
+                    {
+                        <a href="@Url.Action("Edit", "Course", new { id = course.Id })">Edit</a>
+                        <button data-course-id="@course.Id" class="btn btn-danger btn-sm js-cancel-course">Cancel</button>
+                    }
+                </div>
+                
+                
+                @*<b>Thời gian:</b> @course.DateTime.ToString("dd/MM/yyyy HH:mm:ss") - <b>User:</b> @course.Name - <b>Địa điểm:</b> @course.Place*@
+            </li>
+        }
+    </ul>
+</div>
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $(".js-tongle-attendance").click(function (e) {
+                var button = $(e.target);
+                $.post("/api/attendances", { Id: button.attr("data-course-id") })
+                    .done(function () {
+                        alert("Đăng ký khóa học thành công!");
+                        button.removeClass("btn-default");
+                        button.addClass("btn-info");
+                        button.text("Going");
+                    }).fail(function () {
+                        alert("Something fail");
+                    });
+            });
+        });
+        $(document).ready(function () {
+            $(".js-cancel-course").click(function (e) {
+                e.preventDefault();
+                var link = $(e.target);
+                if (confirm("Bạn chắc chắn muốn hủy khóa học này?") == true) {
+                    $.ajax({
+                        method: "POST",
+                        url: "/api/courses/" + link.attr("data-course-id") + "",
+                        data: { id: link.attr("data-course-id")}
+                    })
+                        .done(function () {
+                            link.parents("li").fadeIn(function () {
+                                $(this).remove();
+                            })
+                            alert("Hủy khóa học thành công");
+                        })
+                        .fail(function () {
+                            alert("Có lỗi không hủy được");
+                        });
+                }
+            });
+        });
+    </script>
+}
